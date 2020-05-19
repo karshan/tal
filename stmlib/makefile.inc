@@ -97,10 +97,10 @@ DEP_FILE       = $(BUILD_DIR)depends.mk
 
 ifeq ($(FAMILY),f4xx)
 
-MODEL_DEFINE = STM32F40_41xxx -DSTM32F4XX -DARM_MATH_CM4 -D__FPU_PRESENT
-STARTUP_OBJ   = $(BUILD_DIR)startup_stm32f4xx.o
+MODEL_DEFINE = STM32F40_41xxx -DSTM32F4XX -DARM_MATH_CM4
+STARTUP_OBJ   = $(BUILD_DIR)startup_stm32f407xx.o
 LINKER_SCRIPT = stmlib/linker_scripts/stm32f4xx_flash$(LD_SUFFIX).ld
-FW_STDDRIVER_DIR = $(STM32_PATH)/STM32F4xx_StdPeriph_Driver
+FW_STDDRIVER_DIR = $(STM32_PATH)/STM32F4xx_HAL_Driver
 ARCHFLAGS = -mcpu=cortex-m4 -mthumb -mfloat-abi=hard -mfpu=fpv4-sp-d16 -mthumb-interwork -funroll-loops
 ARCH_DEFINE = GCC_ARMCM4
 OPENOCD_TARGET = f4x
@@ -207,11 +207,10 @@ INCFLAGS = \
 			-DF_CPU=$(F_CPU) \
 			-DF_CRYSTAL=$(F_CRYSTAL) \
 			-DHSE_VALUE=$(F_CRYSTAL) \
-			-DUSE_STDPERIPH_DRIVER \
 			-D$(SYSCLOCK)=$(F_CPU)
 
 CCFLAGS = \
-			-g -O2 -Wall -Werror -Wno-unused-local-typedefs -Wno-strict-aliasing \
+			-g -Wall -Werror -Wno-unused-local-typedefs -Wno-strict-aliasing \
 			-fasm \
 			-finline \
 			-finline-functions-called-once \

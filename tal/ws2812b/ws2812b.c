@@ -22,7 +22,7 @@ static void ws2812b_set_pixel(uint8_t row, uint16_t column, uint8_t red, uint8_t
 
 // Define source arrays for my DMAs
 uint32_t WS2812_IO_High[] =  { WS2812B_PINS };
-uint32_t WS2812_IO_Low[] = {WS2812B_PINS << 16};
+uint32_t WS2812_IO_Low[] = {WS2812B_PINS}; // << 16};
 
 // WS2812 framebuffer - buffer for 2 LEDs - two times 24 bits
 uint16_t ws2812bDmaBitBuffer[24 * 2];
@@ -104,6 +104,9 @@ static void TIM1_init(void)
         TIM_InternalClockConfig(TIM1); // ??? what dis
         TIM_TimeBaseInit(TIM1, &timer_init);
 
+        NVIC_SetPriority(TIM1_UP_TIM10_IRQn, 0);
+	NVIC_EnableIRQ(TIM1_UP_TIM10_IRQn);
+
 	TIM_OCInitTypeDef output_compare_init;
         output_compare_init.TIM_OCMode = TIM_OCMode_PWM1;
         output_compare_init.TIM_OutputState = TIM_OutputState_Enable;
@@ -126,13 +129,12 @@ static void TIM1_init(void)
         TIM_OC2Init(TIM1, &output_compare_init);
 
 // XXX	HAL_TIM_Base_Start(&TIM1_handle);
-        // why enable to disable immediately ? TIM_Cmd(TIM1, ENABLE);
+        TIM_Cmd(TIM1, ENABLE);
 // XXX	HAL_TIM_PWM_Start(&TIM1_handle, TIM_CHANNEL_1);
         TIM_CCxCmd(TIM1, TIM_Channel_1, TIM_CCx_Enable);
         TIM_CtrlPWMOutputs(TIM1, ENABLE);
 
         TIM_Cmd(TIM1, DISABLE);
-
 }
 
 #define BUFFER_SIZE		(sizeof(ws2812bDmaBitBuffer)/sizeof(uint16_t))
@@ -159,7 +161,7 @@ static void DMA2_init(void)
 	// XXX HAL_DMA_Start(&dmaUpdate, (uint32_t)WS2812_IO_High, (uint32_t)(&WS2812B_PORT->BSRR), BUFFER_SIZE);
         DMA2_Stream5->CR &= (uint32_t)(~DMA_SxCR_DBM);
         DMA2_Stream5->NDTR = BUFFER_SIZE;
-        DMA2_Stream5->PAR = (uint32_t)(&WS2812B_PORT->BSRRH);
+        DMA2_Stream5->PAR = (uint32_t)(&WS2812B_PORT->BSRRL);
         DMA2_Stream5->M0AR = (uint32_t)(WS2812_IO_High);
         DMA_Cmd(DMA2_Stream5, ENABLE);
 
@@ -178,8 +180,8 @@ static void DMA2_init(void)
 	// XXX HAL_DMA_Start(&dmaCC1, (uint32_t)ws2812bDmaBitBuffer, (uint32_t)(&WS2812B_PORT->BSRR) + 2, BUFFER_SIZE); //BRR
         DMA2_Stream1->CR &= (uint32_t)(~DMA_SxCR_DBM);
         DMA2_Stream1->NDTR = BUFFER_SIZE;
-        DMA2_Stream1->PAR = (uint32_t)(&WS2812B_PORT->BSRRL);
-        DMA2_Stream1->M0AR = (uint32_t)(WS2812_IO_High);
+        DMA2_Stream1->PAR = (uint32_t)(&WS2812B_PORT->BSRRH);
+        DMA2_Stream1->M0AR = (uint32_t)(ws2812bDmaBitBuffer);
         DMA_Cmd(DMA2_Stream1, ENABLE);
 
         DMA_DeInit(DMA2_Stream2);
@@ -195,7 +197,6 @@ static void DMA2_init(void)
         DMA2_Stream2->CR  |= DMA_IT_TC | DMA_IT_TE | DMA_IT_DME | DMA_IT_HT;
         DMA2_Stream2->FCR |= DMA_IT_FE;
         DMA_Cmd(DMA2_Stream2, ENABLE);
-
 }
 
 static void loadNextFramebufferData(WS2812_BufferItem *bItem, uint32_t row)
@@ -355,21 +356,51 @@ void DMA2_Stream2_IRQHandler(void)
 	// Check the interrupt and clear flag
 	// XXX HAL_DMA_IRQHandler(&dmaCC2);
         uint32_t isr = DMA2->LISR;
-        if (isr & DMA_FLAG_HTIF0) {
+        uint32_t hisr = DMA2->HISR;
+        if (isr & DMA_FLAG_HTIF2) {
             if (DMA2_Stream2->CR & DMA_IT_HT) {
                 // clear flag
-                DMA2->LIFCR = DMA_FLAG_HTIF0 << 16; // ???? Same as ... _FLAG_HTIF2;
+                DMA2->LIFCR = DMA_FLAG_HTIF2; // << 16; // ???? Same as ... _FLAG_HTIF2;
                 DMA_TransferHalfHandler();
             }
         }
 
-        if (isr & DMA_FLAG_TCIF0) {
+        if (isr & DMA_FLAG_TCIF2) {
             if (DMA2_Stream2->CR & DMA_IT_TC) {
                 // clear flag
-                DMA2->LIFCR = DMA_FLAG_TCIF0 << 16; // ???? Same as ... _FLAG_TCIF2;
+                DMA2->LIFCR = DMA_FLAG_TCIF2; // << 16; // ???? Same as ... _FLAG_TCIF2;
 	        DMA_TransferCompleteHandler();
             }
         }
+
+        if (isr & DMA_FLAG_HTIF1) {
+            if (DMA2_Stream2->CR & DMA_IT_HT) {
+                // clear flag
+                DMA2->LIFCR = DMA_FLAG_HTIF1; // << 16; // ???? Same as ... _FLAG_HTIF2;
+            }
+        }
+
+        if (isr & DMA_FLAG_TCIF1) {
+            if (DMA2_Stream2->CR & DMA_IT_TC) {
+                // clear flag
+                DMA2->LIFCR = DMA_FLAG_TCIF1; // << 16; // ???? Same as ... _FLAG_TCIF2;
+            }
+        }
+
+        if (hisr & DMA_FLAG_HTIF5) {
+            if (DMA2_Stream2->CR & DMA_IT_TC) {
+                // clear flag
+                DMA2->HIFCR = DMA_FLAG_HTIF5; // << 16; // ???? Same as ... _FLAG_TCIF2;
+            }
+        }
+
+        if (hisr & DMA_FLAG_TCIF5) {
+            if (DMA2_Stream2->CR & DMA_IT_TC) {
+                // clear flag
+                DMA2->HIFCR = DMA_FLAG_TCIF5; // << 16; // ???? Same as ... _FLAG_TCIF2;
+            }
+        }
+
 
 	#if defined(LED_BLUE_PORT)
 		LED_BLUE_PORT->BSRRH = LED_BLUE_PIN;
@@ -559,10 +590,8 @@ void ws2812b_init()
 	/*TIM2_init();
 	DMA_init();*/
 
-
 	DMA2_init();
 	TIM1_init();
-
 
 	// Need to start the first transfer
 	ws2812b.transferComplete = 1;

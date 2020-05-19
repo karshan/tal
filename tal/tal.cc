@@ -5,6 +5,8 @@
 uint8_t frameBuffer[3*64];
 
 int main() {
+    DBGMCU_APB2PeriphConfig(DBGMCU_TIM1_STOP, ENABLE);
+
     RCC_AHB1PeriphClockCmd(RCC_AHB1Periph_GPIOD, ENABLE);
 
     GPIO_InitTypeDef gpio_init;
@@ -23,14 +25,14 @@ int main() {
     GPIO_Init(GPIOD, &gpio_init);
 
 
-//    GPIO_WriteBit(GPIOD, GPIO_Pin_12, Bit_SET);
-    GPIO_WriteBit(GPIOD, GPIO_Pin_14, Bit_SET);
+    GPIO_WriteBit(GPIOD, GPIO_Pin_12, Bit_SET);
+//    GPIO_WriteBit(GPIOD, GPIO_Pin_14, Bit_SET);
 
     int i;
     for (i = 0; i < 64; i++) {
         frameBuffer[3 * i] = 100;
-        frameBuffer[3 * i + 1] = 100;
-        frameBuffer[3 * i + 2] = 100;
+        frameBuffer[3 * i + 1] = 0;
+        frameBuffer[3 * i + 2] = 0;
     }
     ws2812b.item[0].frameBufferPointer = frameBuffer;
     ws2812b.item[0].frameBufferSize = sizeof(frameBuffer);

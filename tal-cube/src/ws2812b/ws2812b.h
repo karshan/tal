@@ -14,13 +14,15 @@
 
 #ifndef WS2812B_H_
 #define WS2812B_H_
+#include "ws2812b.h"
 
 // GPIO enable command
-#define WS2812B_GPIO_CLK_ENABLE() RCC_AHB1PeriphClockCmd(RCC_AHB1Periph_GPIOC, ENABLE);
+#define WS2812B_GPIO_CLK_ENABLE() __HAL_RCC_GPIOC_CLK_ENABLE()
 // LED output port
 #define WS2812B_PORT GPIOC
 // LED output pins
-#define WS2812B_PINS (GPIO_Pin_0)
+#define WS2812B_PINS (GPIO_PIN_0)
+// | GPIO_PIN_1 | GPIO_PIN_2 | GPIO_PIN_3)
 // How many LEDs are in the series - only valid multiples by two
 #define WS2812B_NUMBER_OF_LEDS 64
 
@@ -41,25 +43,17 @@
 
 // Set during DMA Half and Full transfer IRQ to debug how long IRQ is processing
 #define LED_BLUE_PORT GPIOD
-#define LED_BLUE_PIN GPIO_Pin_15
+#define LED_BLUE_PIN GPIO_PIN_15
 
 // Set during full transfer DMA and TIM1 IRQ
 #define LED_ORANGE_PORT GPIOD
-#define LED_ORANGE_PIN GPIO_Pin_13
+#define LED_ORANGE_PIN GPIO_PIN_13
 
 
 // Public functions
 // ****************
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 void ws2812b_init();
 void ws2812b_handle();
-
-#ifdef __cplusplus
-}
-#endif
 
 // Library structures
 // ******************
@@ -78,7 +72,7 @@ typedef struct WS2812_BufferItem {
 typedef struct WS2812_Struct
 {
 	WS2812_BufferItem item[WS2812_BUFFER_COUNT];
-	volatile uint8_t transferComplete;
+	uint8_t transferComplete;
 	uint8_t startTransfer;
 	uint32_t timerPeriodCounter;
 	uint32_t repeatCounter;
@@ -98,10 +92,9 @@ WS2812_Struct ws2812b;
 #define varResetBit(var,bit) (Var_ResetBit_BB((uint32_t)&var,bit))
 #define varGetBit(var,bit) (Var_GetBit_BB((uint32_t)&var,bit))
 
-/*
-void DMA_TransferCompleteHandler();
-void DMA_TransferHalfHandler();
-void DMA_TransferError();
-*/
+void ws2812b_set_pixel(uint8_t row, uint16_t column, uint8_t red, uint8_t green, uint8_t blue);
+void DMA_TransferCompleteHandler(DMA_HandleTypeDef *DmaHandle);
+void DMA_TransferHalfHandler(DMA_HandleTypeDef *DmaHandle);
+void DMA_TransferError(DMA_HandleTypeDef *DmaHandle);
 
 #endif /* WS2812B_H_ */
