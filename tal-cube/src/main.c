@@ -1,61 +1,15 @@
-/**
-  ******************************************************************************
-  * File Name          : main.c
-  * Description        : Main program body
-  ******************************************************************************
-  *
-  * COPYRIGHT(c) 2016 STMicroelectronics
-  *
-  * Redistribution and use in source and binary forms, with or without modification,
-  * are permitted provided that the following conditions are met:
-  *   1. Redistributions of source code must retain the above copyright notice,
-  *      this list of conditions and the following disclaimer.
-  *   2. Redistributions in binary form must reproduce the above copyright notice,
-  *      this list of conditions and the following disclaimer in the documentation
-  *      and/or other materials provided with the distribution.
-  *   3. Neither the name of STMicroelectronics nor the names of its contributors
-  *      may be used to endorse or promote products derived from this software
-  *      without specific prior written permission.
-  *
-  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-  * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-  * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
-  * DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE
-  * FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
-  * DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
-  * SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
-  * CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
-  * OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
-  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-  *
-  ******************************************************************************
-  */
-/* Includes ------------------------------------------------------------------*/
 #include "main.h"
 #include "stm32f4xx_hal.h"
 
-/* USER CODE BEGIN Includes */
 #include "ws2812b/ws2812b.h"
-#include "tal-cube/src/visEffect.h"
-/* USER CODE END Includes */
+#include "leds.h"
+#include "input.h"
+#include "visEffect.h"
 
-/* Private variables ---------------------------------------------------------*/
-
-/* USER CODE BEGIN PV */
-/* Private variables ---------------------------------------------------------*/
-
-/* USER CODE END PV */
-
-/* Private function prototypes -----------------------------------------------*/
 void SystemClock_Config(void);
 void Error_Handler(void);
 
-/* USER CODE BEGIN PFP */
-/* Private function prototypes -----------------------------------------------*/
-
-/* USER CODE END PFP */
-
-/* USER CODE BEGIN 0 */
+// TODO this might be unnecessary
 static void MX_GPIO_Init(void)
 {
   GPIO_InitTypeDef GPIO_InitStruct = {0};
@@ -68,11 +22,11 @@ static void MX_GPIO_Init(void)
   __HAL_RCC_GPIOB_CLK_ENABLE();
   __HAL_RCC_GPIOD_CLK_ENABLE();
 
-  /*Configure GPIO pin : B1_Pin */
-  GPIO_InitStruct.Pin = GPIO_PIN_1;
+  /*Configure GPIO pin : A0_Pin */
+  GPIO_InitStruct.Pin = GPIO_PIN_0;
   GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
-  GPIO_InitStruct.Pull = GPIO_PULLUP;
-  HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
+  GPIO_InitStruct.Pull = GPIO_NOPULL;
+  HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
 
   /*Configure GPIO pins : PA1 PA2 PA3 PA4 */
   GPIO_InitStruct.Pin = GPIO_PIN_1|GPIO_PIN_2|GPIO_PIN_3|GPIO_PIN_4;
@@ -81,76 +35,35 @@ static void MX_GPIO_Init(void)
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
   HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
 }
-/* USER CODE END 0 */
 
 uint8_t frameBuffer[3*64];
 
+uint8_t state[NUM_ROWS][NUM_COLS];
+void handle_input(struct input_evt *e) {
+    if (e->val == 0) {
+        state[e->row][e->col] = state[e->row][e->col] ? 0:1;
+    }
+    leds_set(e->row, e->col, state[e->row][e->col] ? red : off);
+}
+
 int main(void)
 {
+    HAL_Init();
+    SystemClock_Config();
 
-  /* USER CODE BEGIN 1 */
+    MX_GPIO_Init();
+    leds_init();
+    input_init(handle_input);
 
-  /* USER CODE END 1 */
-
-  /* MCU Configuration----------------------------------------------------------*/
-
-  /* Reset of all peripherals, Initializes the Flash interface and the Systick. */
-  HAL_Init();
-
-  /* Configure the system clock */
-  SystemClock_Config();
-
-  /* Initialize all configured peripherals */
-
-  /* USER CODE BEGIN 2 */
-  MX_GPIO_Init();
-  /*visInit();
-  while(1) {
-      visHandle();
-  }*/
-  int i;
-   for (i = 0; i < 0; i++) {
- 	  frameBuffer[3 * i] = 245;
- 	  frameBuffer[3 * i + 1] = 212;
- 	  frameBuffer[3 * i + 2] = 131;
+    while (1)
+    {
+        scan_buttons();
+        if(ws2812b.transferComplete)
+        {
+            ws2812b.startTransfer = 1;
+            ws2812b_handle();
+        }
    }
-   ws2812b.item[0].frameBufferPointer = frameBuffer;
-   ws2812b.item[0].frameBufferSize = sizeof(frameBuffer);
-   ws2812b.item[0].channel = 0;
-   ws2812b_init();
-   i = 0;
-   while (1)
-   {
- 	  if(ws2812b.transferComplete)
- 	  {
- 		  // Update your framebuffer here or swap buffers
-
- 		  // Signal that buffer is changed and transfer new data
- 		  ws2812b.startTransfer = 1;
- 		  ws2812b_handle();
- 	  }
- 	  /*
- 	  static uint32_t timestamp;
-
- 	  if(HAL_GetTick() - timestamp > 10)
- 	  {
- 		  timestamp = HAL_GetTick();
-
- 		  HAL_GPIO_WritePin(GPIOA, GPIO_PIN_1, GPIO_PIN_RESET);
- 		  if (HAL_GPIO_ReadPin(GPIOB, GPIO_PIN_1) == GPIO_PIN_RESET) {
- 			  frameBuffer[0] = 100;
- 		  } else {
- 			  frameBuffer[0] = 0;
- 	  	  }
- 	  } */
-   }
-  /* USER CODE END 2 */
-
-  /* Infinite loop */
-  /* USER CODE BEGIN WHILE */
-
-  /* USER CODE END 3 */
-
 }
 
 /** System Clock Configuration
