@@ -10,5 +10,6 @@ void ui_handle_input(struct input_evt *e) {
     if (e->val == 0) {
         state[e->row][e->col] = state[e->row][e->col] ? 0:1;
     }
-    leds_set(e->row, e->col, state[e->row][e->col] ? red : off);
+    rgb on = e->col > 1 ? red : blue;
+    leds_set(e->row, e->col, state[e->row][e->col] ? on : off);
 }

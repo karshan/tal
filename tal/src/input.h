@@ -1,8 +1,8 @@
 #ifndef INPUT_H
 #define INPUT_H
 
-#define NUM_ROWS 4
-#define NUM_COLS 2
+#define NUM_ROWS 8
+#define NUM_COLS 10
 #define NUM_BUTTONS (NUM_ROWS*NUM_COLS)
 
 extern void input_init();

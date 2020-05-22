@@ -17,13 +17,9 @@ void leds_init() {
     for (int i = 0; i < 3 * NUM_LEDS; i++) {
         fb[i] = 0;
     }
-
-    fb[5] = 70;
 }
 
 void leds_set(uint8_t row, uint8_t col, rgb c) {
-    row += 4;
-    col += 6;
     uint8_t i = row * 2 + (col % 2) + (col/2) * 16;
     fb[i * 3] = c.r;
     fb[i * 3 + 1] = c.g;

@@ -24,7 +24,7 @@
 #define WS2812B_PINS (GPIO_PIN_0)
 // | GPIO_PIN_1 | GPIO_PIN_2 | GPIO_PIN_3)
 // How many LEDs are in the series - only valid multiples by two
-#define WS2812B_NUMBER_OF_LEDS 64
+#define WS2812B_NUMBER_OF_LEDS 80
 
 // Number of paralel output LED strips. Each has its own buffer.
 // Supports up to 16 outputs on a single GPIO port

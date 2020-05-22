@@ -1,7 +1,7 @@
 #ifndef LEDS_H
 #define LEDS_H
 
-#define NUM_LEDS 64
+#define NUM_LEDS 80
 
 typedef struct {
     uint8_t r;
