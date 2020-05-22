@@ -36,12 +36,12 @@ FAMILY         = f4xx
 UPLOAD_COMMAND  = upload_combo_jtag_erase_first
 
 # Packages to build
-TARGET         = tal-cube
-PACKAGES       = tal-cube \
-		 tal-cube/src \
-		 tal-cube/src/ws2812b
+TARGET         = tal
+PACKAGES       = tal \
+		 tal/src \
+		 tal/src/ws2812b
 
 TOOLCHAIN_PATH ?= /usr/local/arm-4.8.3/
-PROJECT_CONFIGURATION = -Ital-cube/inc -DSTM32F407xx
+PROJECT_CONFIGURATION = -Ital/inc -DSTM32F407xx
 
 include stmlib/makefile.inc
