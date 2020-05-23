@@ -3,6 +3,7 @@
 #include "leds.h"
 
 rgb red = { 70, 0, 0 };
+rgb green = { 0, 70, 0 };
 rgb blue = { 0, 0, 70 };
 rgb off = { 0, 0, 0 };
 

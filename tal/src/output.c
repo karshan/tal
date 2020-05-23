@@ -1,8 +1,7 @@
 #include "stm32f4xx_hal.h"
 #include "util.h"
+#include "ui.h"
 #include "ws2812b/ws2812b.h"
-
-static uint8_t state = 0;
 
 TIM_HandleTypeDef TIM2_handle;
 
@@ -11,8 +10,7 @@ void TIM2_IRQHandler() {
 }
 
 void tim2_periodElapsed(TIM_HandleTypeDef *htim) {
-    state ^= 1;
-    HAL_GPIO_WritePin(GPIOD, GPIO_PIN_0, state ? GPIO_PIN_SET : GPIO_PIN_RESET);
+    ui_tick();
 }
 
 void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim) {
@@ -25,7 +23,8 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim) {
 
 void output_init() {
     __HAL_RCC_GPIOD_CLK_ENABLE();
-    init_pin(GPIOD, GPIO_PIN_0, GPIO_MODE_OUTPUT_PP, GPIO_NOPULL);
+    uint16_t output_pins = GPIO_PIN_0 | GPIO_PIN_1 | GPIO_PIN_2;
+    init_pin(GPIOD, output_pins, GPIO_MODE_OUTPUT_PP, GPIO_NOPULL);
 
 //    uint32_t tim_period =  SystemCoreClock / 80000; // 1.25us
 
