@@ -100,7 +100,7 @@ void TIM1_init(void)
 	TIM1_handle.Init.CounterMode       = TIM_COUNTERMODE_UP;
 	HAL_TIM_PWM_Init(&TIM1_handle);
 
-	HAL_NVIC_SetPriority(TIM1_UP_TIM10_IRQn, 0, 0);
+	HAL_NVIC_SetPriority(TIM1_UP_TIM10_IRQn, 1, 1);
 	HAL_NVIC_EnableIRQ(TIM1_UP_TIM10_IRQn);
 
 	tim2OC1.OCMode       = TIM_OCMODE_PWM1;
@@ -219,7 +219,7 @@ void DMA2_init(void)
 
 	HAL_DMA_DeInit(&dmaCC2);
 	HAL_DMA_Init(&dmaCC2);
-	HAL_NVIC_SetPriority(DMA2_Stream2_IRQn, 0, 0);
+	HAL_NVIC_SetPriority(DMA2_Stream2_IRQn, 1, 1);
 	HAL_NVIC_EnableIRQ(DMA2_Stream2_IRQn);
 	HAL_DMA_Start_IT(&dmaCC2, (uint32_t)WS2812_IO_Low, (uint32_t)&WS2812B_PORT->BSRR, BUFFER_SIZE);
 	//HAL_DMA_Start_IT(&dmaCC2, (uint32_t)WS2812_IO_Low, (uint32_t)&dummy, BUFFER_SIZE);
@@ -419,7 +419,7 @@ void TIM1_UP_TIM10_IRQHandler(void)
 }
 
 // TIM2 Interrupt Handler gets executed on every TIM2 Update if enabled
-void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
+void ws2812b_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
 {
 	/*
 	// I have to wait 50us to generate Treset signal

@@ -4,6 +4,7 @@
 #include "ws2812b/ws2812b.h"
 #include "leds.h"
 #include "input.h"
+#include "output.h"
 #include "ui.h"
 
 void SystemClock_Config(void);
@@ -28,6 +29,7 @@ int main(void)
     leds_init();
     ui_init();
     input_init(ui_handle_input);
+    output_init();
 
     while (1)
     {

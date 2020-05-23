@@ -54,6 +54,7 @@
 // ****************
 void ws2812b_init();
 void ws2812b_handle();
+extern void ws2812b_PeriodElapsedCallback(TIM_HandleTypeDef *);
 
 // Library structures
 // ******************

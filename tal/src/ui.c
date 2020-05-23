@@ -2,7 +2,7 @@
 #include "input.h"
 #include "leds.h"
 
-uint8_t state[NUM_ROWS][NUM_COLS];
+static uint8_t state[NUM_ROWS][NUM_COLS];
 void ui_init() {
 }
 
