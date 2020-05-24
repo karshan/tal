@@ -10,7 +10,12 @@ void TIM2_IRQHandler() {
 }
 
 void tim2_periodElapsed(TIM_HandleTypeDef *htim) {
-    ui_tick();
+    GPIO_PinState cur = HAL_GPIO_ReadPin(GPIOD, GPIO_PIN_0);
+    HAL_GPIO_TogglePin(GPIOD, GPIO_PIN_0);
+
+    if (cur == GPIO_PIN_RESET) {
+        ui_tick();
+    }
 }
 
 void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim) {
@@ -33,12 +38,15 @@ void output_init() {
     TIM2_handle.Instance = TIM2;
     TIM2_handle.Init.Period            = 50;
     TIM2_handle.Init.RepetitionCounter = 0;
-    TIM2_handle.Init.Prescaler         = 40000;
+    TIM2_handle.Init.Prescaler         = 10000;
     TIM2_handle.Init.ClockDivision     = TIM_CLOCKDIVISION_DIV1;
     TIM2_handle.Init.CounterMode       = TIM_COUNTERMODE_UP;
     HAL_TIM_Base_Init(&TIM2_handle);
     HAL_TIM_Base_Start(&TIM2_handle);
     HAL_NVIC_SetPriority(TIM2_IRQn, 0, 0);
     HAL_NVIC_EnableIRQ(TIM2_IRQn);
+
+    HAL_GPIO_WritePin(GPIOD, GPIO_PIN_0, GPIO_PIN_RESET);
+
     TIM2->DIER |= 1;
 }
