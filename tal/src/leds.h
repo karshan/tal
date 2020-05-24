@@ -15,6 +15,7 @@ extern rgb green;
 extern rgb blue;
 extern rgb off;
 extern void leds_init();
+extern void leds_clear();
 extern void leds_set(uint8_t row, uint8_t col, rgb c);
 extern uint8_t fb[3 * NUM_LEDS];
 
