@@ -9,7 +9,8 @@
 
 #define CLOCK_PIN GPIO_PIN_0
 #define RESET_PIN GPIO_PIN_1
-#define CHAN1_PIN GPIO_PIN_2
+
+uint16_t chan_pin[8] = { GPIO_PIN_2, 0, 0, 0, 0, 0, 0, 0 };
 
 typedef struct {
     uint8_t row;
@@ -42,6 +43,20 @@ void vertical_mode_init() {
     leds_set(vertical_btn.row, vertical_btn.col, blue);
     leds_set(chan, CHAN_COL, green);
     leds_set(preset, PRESET_COL, green);
+    for (int i = 0; i < 8; i++)
+        leds_set(i, STEPS_COL, steps[preset][chan][i] ? green : off);
+}
+
+void _8x8_mode_init() {
+    mode = _8x8;
+    leds_clear();
+    leds_set(_8x8_btn.row, _8x8_btn.col, blue);
+
+    for (int c = 0; c < 8; c++) {
+        for (int s = 0; s < 8; s++) {
+            leds_set(c, s + 1, steps[preset][c][s] ? green : off);
+        }
+    }
 }
 
 void ui_init() {
@@ -58,9 +73,7 @@ void ui_handle_input(struct input_evt *e) {
         }
 
         if (memcmp(&i, &_8x8_btn, sizeof(pos)) == 0) {
-            mode = _8x8;
-            leds_clear();
-            leds_set(_8x8_btn.row, _8x8_btn.col, blue);
+            _8x8_mode_init();
         }
 
         if (mode == VERTICAL) {
@@ -89,6 +102,11 @@ void ui_handle_input(struct input_evt *e) {
                     leds_set(i, STEPS_COL, steps[preset][chan][i] ? green : off);
                 leds_set(preset, PRESET_COL, green);
             }
+        } else if (mode == _8x8) {
+            if (e->col >= 1 && e->col <= 8) {
+                steps[preset][e->row][e->col - 1] ^= 1;
+                leds_set(e->row, e->col, steps[preset][e->row][e->col -1] ? green : off);
+            }
         }
     }
 }
@@ -104,10 +122,12 @@ void ui_tick() {
         leds_set(reset_btn.row, reset_btn.col, off);
     }
 
-    if (steps[preset][0][tick/12] && (tick % 12) == 0) {
-        WritePin(CHAN1_PIN, 1);
-    } else {
-        WritePin(CHAN1_PIN, 0);
+    for (int c = 0; c < 8; c++) {
+        if (steps[preset][c][tick/12] && (tick % 12) == 0) {
+            WritePin(chan_pin[c], 1);
+        } else {
+            WritePin(chan_pin[c], 0);
+        }
     }
 
     // cursor
@@ -116,6 +136,13 @@ void ui_tick() {
             fb[LED_INDEX(i, STEPS_COL)*3] = 0;
         }
         fb[LED_INDEX(tick/12, STEPS_COL)*3] = 70;
+    } else if (mode == _8x8) {
+        for (int s = 0; s < 8; s++) {
+            uint8_t v = s == tick/12 ? 70 : 0;
+            for (int r = 0; r < 8; r++) {
+                fb[LED_INDEX(r, s + 1)*3] = v;
+            }
+        }
     }
 
     tick = (tick + 1) % BAR_LENGTH;
