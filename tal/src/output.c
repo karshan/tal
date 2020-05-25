@@ -28,10 +28,9 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim) {
 
 void output_init() {
     __HAL_RCC_GPIOD_CLK_ENABLE();
-    uint16_t output_pins = GPIO_PIN_0 | GPIO_PIN_1 | GPIO_PIN_2;
+    // FIXME use pins from ui.c ??? one source of truth
+    uint16_t output_pins = GPIO_PIN_0 | GPIO_PIN_1 | GPIO_PIN_2 | GPIO_PIN_3 | GPIO_PIN_6 | GPIO_PIN_7 | GPIO_PIN_9;
     init_pin(GPIOD, output_pins, GPIO_MODE_OUTPUT_PP, GPIO_NOPULL);
-
-//    uint32_t tim_period =  SystemCoreClock / 80000; // 1.25us
 
     __HAL_RCC_TIM2_CLK_ENABLE();
     __TIM2_CLK_ENABLE();

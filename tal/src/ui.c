@@ -10,7 +10,7 @@
 #define CLOCK_PIN GPIO_PIN_0
 #define RESET_PIN GPIO_PIN_1
 
-uint16_t chan_pin[8] = { GPIO_PIN_2, 0, 0, 0, 0, 0, 0, 0 };
+uint16_t chan_pin[8] = { GPIO_PIN_2, GPIO_PIN_3, GPIO_PIN_6, GPIO_PIN_7, GPIO_PIN_8, GPIO_PIN_9, 0, 0 };
 
 typedef struct {
     uint8_t row;
@@ -24,6 +24,7 @@ pos _8x8_btn = { 6, 9 };
 #define PRESET_COL 2
 #define STEPS_COL 3
 #define CHAN_COL 4
+#define MUTE_COL 5
 pos reset_btn = { 3, 7 };
 
 typedef enum { VERTICAL = 0, _8x8 } ui_mode;
@@ -34,7 +35,9 @@ uint8_t reset = 0;
 ui_mode mode = VERTICAL;
 uint8_t chan = 0;
 uint8_t preset = 0;
+// TODO don't hardcode 8
 uint8_t steps[8][8][8]; // [preset][chan][step]
+uint8_t mutes[8]; // [chan]
 
 void vertical_mode_init() {
     mode = VERTICAL;
@@ -45,6 +48,8 @@ void vertical_mode_init() {
     leds_set(preset, PRESET_COL, green);
     for (int i = 0; i < 8; i++)
         leds_set(i, STEPS_COL, steps[preset][chan][i] ? green : off);
+    for (int i = 0; i < 8; i++)
+        leds_set(i, MUTE_COL, mutes[i] ? green : off);
 }
 
 void _8x8_mode_init() {
@@ -102,6 +107,12 @@ void ui_handle_input(struct input_evt *e) {
                     leds_set(i, STEPS_COL, steps[preset][chan][i] ? green : off);
                 leds_set(preset, PRESET_COL, green);
             }
+
+            if (e->col == MUTE_COL) {
+                mutes[e->row] ^= 1;
+                leds_set(e->row, e->col, mutes[e->row] ? green : off);
+            }
+
         } else if (mode == _8x8) {
             if (e->col >= 1 && e->col <= 8) {
                 steps[preset][e->row][e->col - 1] ^= 1;
@@ -123,7 +134,7 @@ void ui_tick() {
     }
 
     for (int c = 0; c < 8; c++) {
-        if (steps[preset][c][tick/12] && (tick % 12) == 0) {
+        if (mutes[c] == 0 && steps[preset][c][tick/12] && (tick % 12) == 0) {
             WritePin(chan_pin[c], 1);
         } else {
             WritePin(chan_pin[c], 0);
