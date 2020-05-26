@@ -11,7 +11,10 @@ void TIM2_IRQHandler() {
 
 void tim2_periodElapsed(TIM_HandleTypeDef *htim) {
     GPIO_PinState cur = HAL_GPIO_ReadPin(GPIOD, GPIO_PIN_0);
-    HAL_GPIO_TogglePin(GPIOD, GPIO_PIN_0);
+
+    if (pause == 0) {
+        HAL_GPIO_TogglePin(GPIOD, GPIO_PIN_0);
+    }
 
     if (cur == GPIO_PIN_RESET) {
         ui_tick();
