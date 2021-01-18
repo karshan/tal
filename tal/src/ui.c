@@ -22,6 +22,7 @@ pos _8x8_btn = { 6, 9 };
 pos _1x64_btn = { 3, 9 };
 
 // vertical mode btns
+#define GROUP_COL 2
 #define PRESET_COL 2
 #define STEPS_COL 3
 #define CHAN_COL 4
