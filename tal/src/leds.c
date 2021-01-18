@@ -14,7 +14,7 @@ void leds_clear() {
     memset(fb, 0, 3 * NUM_LEDS);
 }
 
-void leds_set(uint8_t row, uint8_t col, rgb c) {
+inline void leds_set(uint8_t row, uint8_t col, rgb c) {
     uint8_t i = row * 2 + (col % 2) + (col/2) * 16;
     fb[i * 3] = c.r;
     fb[i * 3 + 1] = c.g;

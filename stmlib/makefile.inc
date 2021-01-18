@@ -26,7 +26,7 @@
 # Files and directories
 # ------------------------------------------------------------------------------
 
-TOOLCHAIN_PATH ?= /usr/local/arm/
+TOOLCHAIN_PATH ?= /usr/local/
 
 PGM_INTERFACE ?= stlink-v2
 # PGM_INTERFACE ?= ftdi/olimex-arm-jtag-swd
@@ -210,7 +210,7 @@ INCFLAGS = \
 			-D$(SYSCLOCK)=$(F_CPU)
 
 CCFLAGS = \
-			-g -Wall -Werror -Wno-unused-local-typedefs -Wno-strict-aliasing \
+			-g -Wall -Wno-unused-local-typedefs -Wno-strict-aliasing \
 			-fasm \
 			-finline \
 			-finline-functions-called-once \

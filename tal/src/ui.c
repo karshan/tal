@@ -10,7 +10,7 @@
 #define CLOCK_PIN GPIO_PIN_0
 #define RESET_PIN GPIO_PIN_1
 
-uint16_t chan_pin[8] = { GPIO_PIN_2, GPIO_PIN_3, GPIO_PIN_6, GPIO_PIN_7, GPIO_PIN_8, GPIO_PIN_9, 0, 0 };
+uint16_t chan_pin[8] = { GPIO_PIN_2, GPIO_PIN_3, GPIO_PIN_6, GPIO_PIN_7, GPIO_PIN_8, GPIO_PIN_9, GPIO_PIN_10, GPIO_PIN_11 };
 
 typedef struct {
     uint8_t row;
@@ -146,7 +146,7 @@ void ui_handle_input(struct input_evt *e) {
 
             if (e->col == MUTE_COL) {
                 mutes[e->row] ^= 1;
-                leds_set(e->row, e->col, mutes[e->row] ? green : off);
+                leds_set(e->row, e->col, mutes[e->row] ? red : off);
             }
 
         } else if (mode == _8x8) {

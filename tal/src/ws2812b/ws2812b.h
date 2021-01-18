@@ -79,7 +79,7 @@ typedef struct WS2812_Struct
 	uint32_t repeatCounter;
 } WS2812_Struct;
 
-WS2812_Struct ws2812b;
+extern WS2812_Struct ws2812b;
 
 // Bit band stuff
 #define RAM_BASE 0x20000000
