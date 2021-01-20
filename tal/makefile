@@ -41,7 +41,7 @@ PACKAGES       = tal \
 		 tal/src \
 		 tal/src/ws2812b
 
-TOOLCHAIN_PATH ?= /usr/local/
+TOOLCHAIN_PATH ?= /usr/local/arm-4.8.3/
 PROJECT_CONFIGURATION = -Ital/inc -DSTM32F407xx
 
 include stmlib/makefile.inc
