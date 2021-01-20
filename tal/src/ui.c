@@ -94,11 +94,11 @@ void ui_init() {
     vertical_mode_init();
 }
 
-
 void ui_handle_input(struct input_evt *e) {
     pos i = { e->row, e->col };
+#define IS(a) (memcmp(&i, &a, sizeof(pos)) == 0)
     if (e->val == 0) { // key release
-        if (memcmp(&i, &vertical_btn, sizeof(pos)) == 0) {
+        if (IS(vertical_btn)) {
             vertical_mode_init();
         }
 
