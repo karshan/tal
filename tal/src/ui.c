@@ -31,6 +31,8 @@ pos _1x64_btn = { 3, 9 };
 pos reset_btn = { 3, 7 };
 pos pause_btn = { 7, 8 };
 pos preset_loop_btn = { 0, 8 };
+pos copy_btn = { 1, 5 };
+pos paste_btn = { 1, 6 };
 
 uint8_t reset = 0;
 uint8_t pause = 0;
@@ -122,30 +124,82 @@ void ui_handle_input(struct input_evt *e) {
                 leds_set(pause_btn.row, pause_btn.col, pause ? red : green);
             }
 
+            if (IS(copy_btn)) {
+                if (ss.copy.copying == CP_NO) {
+                    ss.copy.copying = CP_SELECT;
+                    leds_set(copy_btn.row, copy_btn.col, red);
+                } else {
+                    ss.copy.copying = CP_NO;
+                    leds_set(copy_btn.row, copy_btn.col, off);
+                }
+            }
+
+            if (IS(paste_btn)) {
+                if (ss.copy.pasting == P_NO) {
+                    ss.copy.pasting = P_YES;
+                    leds_set(paste_btn.row, paste_btn.col, red);
+                } else {
+                    ss.copy.pasting = P_NO;
+                    leds_set(paste_btn.row, paste_btn.col, off);
+                }
+            }
+
             if (e->col == STEPS_COL) {
                 toggle_step(&ss, e->row);
                 leds_set(e->row, e->col, get_step(&ss, e->row) ? green : off);
             }
 
-            if (e->col == CHAN_COL) {
-                leds_set(ss.chan, CHAN_COL, off);
-                ss.chan = e->row;
-                render_steps_vertical();
-                leds_set(ss.chan, CHAN_COL, green);
-            }
+            if (ss.copy.copying == CP_SELECT) {
+                if (e->col == CHAN_COL || e->col == PRESET_COL || e->col == GROUP_COL) {
+                    ss.copy.copying = CP_YES;
+                    leds_set(copy_btn.row, copy_btn.col, green);
+                }
 
-            if (e->col == PRESET_COL) {
-                leds_set(ss.preset, PRESET_COL, off);
-                ss.preset = e->row;
-                render_steps_vertical();
-                leds_set(ss.preset, PRESET_COL, green);
-            }
+                if (e->col == CHAN_COL) {
+                    ss.copy.type = CP_CHAN;
+                    ss.copy.chan = e->row;
+                } else if (e->col == PRESET_COL) {
+                    ss.copy.type = CP_PRESET;
+                    ss.copy.preset = e->row;
+                } else if (e->col == GROUP_COL) {
+                    ss.copy.type = CP_GROUP;
+                    ss.copy.group = e->row;
+                }
+            } else if (ss.copy.pasting == P_YES) {
+                if (e->col == CHAN_COL && ss.copy.type == CP_CHAN) {
+                    ss.copy.pasting = P_NO;
+                    leds_set(paste_btn.row, paste_btn.col, off);
+                    copy_chan(&ss, e->row, ss.copy.chan);
+                } else if (e->col == PRESET_COL && ss.copy.type == CP_PRESET) {
+                    ss.copy.pasting = P_NO;
+                    leds_set(paste_btn.row, paste_btn.col, off);
+                    copy_preset(&ss, e->row, ss.copy.preset);
+                } else if (e->col == GROUP_COL && ss.copy.type == CP_GROUP) {
+                    ss.copy.pasting = P_NO;
+                    leds_set(paste_btn.row, paste_btn.col, off);
+                    copy_group(&ss, e->row, ss.copy.group);
+                }
+            } else { // ss.copy.copying != CP_SELECT && ss.copy.pasting != P_NO
+                if (e->col == CHAN_COL) {
+                    leds_set(ss.chan, CHAN_COL, off);
+                    ss.chan = e->row;
+                    render_steps_vertical();
+                    leds_set(ss.chan, CHAN_COL, green);
+                }
 
-            if (e->col == GROUP_COL) {
-                leds_set(ss.group, GROUP_COL, off);
-                ss.group = e->row;
-                render_steps_vertical();
-                leds_set(ss.group, GROUP_COL, green);
+                if (e->col == PRESET_COL) {
+                    leds_set(ss.preset, PRESET_COL, off);
+                    ss.preset = e->row;
+                    render_steps_vertical();
+                    leds_set(ss.preset, PRESET_COL, green);
+                }
+
+                if (e->col == GROUP_COL) {
+                    leds_set(ss.group, GROUP_COL, off);
+                    ss.group = e->row;
+                    render_steps_vertical();
+                    leds_set(ss.group, GROUP_COL, green);
+                }
             }
 
             if (e->col == MUTE_COL) {

@@ -1,3 +1,4 @@
+#include "string.h"
 #include "stm32f4xx_hal.h"
 #include "seq_state.h"
 
@@ -21,5 +22,25 @@ inline void toggle_step(state_t *s, uint8_t i) {
     s->groups[s->group].presets[s->preset].chans[s->chan].steps[i] ^= 1;
 }
 
+inline void copy_chan(state_t *s, uint8_t dest, uint8_t src) {
+    memcpy(s->groups[s->group].presets[s->preset].chans[dest].steps,
+            s->groups[s->copy.group].presets[s->copy.preset].chans[src].steps,
+            sizeof(chan_t));
+}
+
+inline void copy_preset(state_t *s, uint8_t dest, uint8_t src) {
+    memcpy(s->groups[s->group].presets[s->preset].chans,
+            s->groups[s->copy.group].presets[s->copy.preset].chans,
+            sizeof(preset_t));
+}
+
+inline void copy_group(state_t *s, uint8_t dest, uint8_t src) {
+    memcpy(s->groups[s->group].presets,
+            s->groups[s->copy.group].presets,
+            sizeof(group_t));
+}
+
 void seq_state_init(state_t *s) {
+    copy_state_t init_copy = { CP_NO, P_NO, CP_CHAN, 0 };
+    s->copy = init_copy;
 }
