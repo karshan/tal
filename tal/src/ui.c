@@ -30,10 +30,11 @@ pos preset_loop_btn = { 0, 8 };
 pos set_loop_btn = { 0, 7 };
 pos copy_btn = { 1, 5 };
 pos paste_btn = { 1, 6 };
+pos clear_btn = { 1, 8 };
 
 uint8_t reset = 0;
 uint8_t pause = 0;
-uint8_t preset_loop = 0;
+uint8_t preset_loop = 0; // TODO: move to state_t
 state_t ss;
 
 uint16_t tick = 0;
@@ -54,7 +55,7 @@ void vertical_mode_init() {
     render_steps_vertical();
     for (int i = 0; i < 8; i++)
         leds_set(i, MUTE_COL, ss.mutes[i] ? red : off);
-    leds_set(preset_loop_btn.row, preset_loop_btn.col, preset_loop ? green : off);
+    leds_set(preset_loop_btn.row, preset_loop_btn.col, preset_loop ? green : red);
     leds_set(pause_btn.row, pause_btn.col, pause ? red : green);
 }
 
@@ -90,6 +91,7 @@ void ui_init() {
 }
 
 void copy_start() {
+    if (ss.copy.pasting == 1 || ss.clearing == 1) return;
     if (ss.copy.copying == CP_NO) {
         ss.copy.copying = CP_SELECT;
         leds_set(copy_btn.row, copy_btn.col, red);
@@ -118,29 +120,52 @@ void copy_select(struct input_evt *e) {
 }
 
 void paste_start() {
-    if (ss.copy.pasting == P_NO) {
-        ss.copy.pasting = P_YES;
+    if (ss.copy.copying == CP_SELECT || ss.clearing == 1) return;
+    if (ss.copy.pasting == 0 && ss.copy.copying == CP_YES) {
+        ss.copy.pasting = 1;
         leds_set(paste_btn.row, paste_btn.col, red);
     } else {
-        ss.copy.pasting = P_NO;
+        ss.copy.pasting = 0;
         leds_set(paste_btn.row, paste_btn.col, off);
     }
 }
 
 void paste_select(struct input_evt *e) {
     if (e->col == CHAN_COL && ss.copy.type == CP_CHAN) {
-        ss.copy.pasting = P_NO;
+        ss.copy.pasting = 0;
         leds_set(paste_btn.row, paste_btn.col, off);
         copy_chan(&ss, e->row, ss.copy.chan);
     } else if (e->col == PRESET_COL && ss.copy.type == CP_PRESET) {
-        ss.copy.pasting = P_NO;
+        ss.copy.pasting = 0;
         leds_set(paste_btn.row, paste_btn.col, off);
         copy_preset(&ss, e->row, ss.copy.preset);
     } else if (e->col == GROUP_COL && ss.copy.type == CP_GROUP) {
-        ss.copy.pasting = P_NO;
+        ss.copy.pasting = 0;
         leds_set(paste_btn.row, paste_btn.col, off);
         copy_group(&ss, e->row, ss.copy.group);
     }
+}
+
+void clear_start() {
+    if (ss.copy.copying == CP_SELECT || ss.copy.pasting == 1) return;
+    if (ss.clearing == 0) {
+        ss.clearing = 1;
+        leds_set(clear_btn.row, clear_btn.col, red);
+    } else {
+        ss.clearing = 0;
+        leds_set(paste_btn.row, paste_btn.col, off);
+    }
+}
+
+void clear_select() {
+    if (e->col == CHAN_COL || e->col == PRESET_COL || e->col == GROUP_COL) {
+        ss.clearing = 0;
+        leds_set(clear_btn.row, clear_btn.col, off);
+    }
+
+    if (e->col == CHAN_COL) clear_chan(&ss, e->row);
+    else if (e->col == PRESET_COL) clear_preset(&ss, e->row);
+    else if (e->col == GROUP_COL) clear_group(&ss, e->row);
 }
 
 #define IS(a) (memcmp(&i, &a, sizeof(pos)) == 0)
@@ -154,7 +179,7 @@ void ui_handle_vertical(struct input_evt *e) {
 
     if (IS(preset_loop_btn)) {
         preset_loop ^= 1;
-        leds_set(preset_loop_btn.row, preset_loop_btn.col, preset_loop ? green : off);
+        leds_set(preset_loop_btn.row, preset_loop_btn.col, preset_loop ? green : red);
     }
 
     if (IS(pause_btn)) {
@@ -166,6 +191,8 @@ void ui_handle_vertical(struct input_evt *e) {
 
     if (IS(paste_btn)) paste_start();
 
+    if (IS(clear_btn)) clear_start();
+
     if (e->col == STEPS_COL) {
         toggle_step(&ss, e->row);
         leds_set(e->row, e->col, get_step(&ss, e->row) ? green : off);
@@ -173,8 +200,10 @@ void ui_handle_vertical(struct input_evt *e) {
 
     if (ss.copy.copying == CP_SELECT) {
         copy_select(e);
-    } else if (ss.copy.pasting == P_YES) {
+    } else if (ss.copy.pasting == 1) {
         paste_select(e);
+    } else if (ss.clearing == 1) {
+        clear_select(e);
     } else {
         if (e->col == CHAN_COL) {
             leds_set(ss.chan, CHAN_COL, off);

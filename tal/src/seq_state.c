@@ -40,6 +40,24 @@ inline void copy_group(state_t *s, uint8_t dest, uint8_t src) {
             sizeof(group_t));
 }
 
+inline void clear_chan(state_t *s, uint8_t i) {
+    memset(s->groups[s->group].presets[s->preset].chans[i].steps,
+            0,
+            sizeof(chan_t));
+}
+
+inline void clear_preset(state_t *s, uint8_t i) {
+    memset(s->groups[s->group].presets[i].chans,
+            0,
+            sizeof(preset_t));
+}
+
+inline void clear_group(state_t *s, uint8_t i) {
+    memset(s->groups[i].presets,
+            0,
+            sizeof(group_t));
+}
+
 void seq_state_init(state_t *s) {
     copy_state_t init_copy = { CP_NO, P_NO, CP_CHAN, 0 };
     s->copy = init_copy;
