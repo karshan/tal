@@ -33,6 +33,7 @@ typedef struct {
     ui_mode  mode;
     copy_state_t copy;
     uint8_t clearing;
+    uint8_t set_loop;
 } state_t;
 
 uint8_t get_step(state_t *s, uint8_t i);

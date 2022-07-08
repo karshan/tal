@@ -59,6 +59,8 @@ inline void clear_group(state_t *s, uint8_t i) {
 }
 
 void seq_state_init(state_t *s) {
-    copy_state_t init_copy = { CP_NO, P_NO, CP_CHAN, 0 };
+    // since mem is inited to 0 this is unnecessary
+    copy_state_t init_copy = { CP_NO, 0, CP_CHAN, 0 };
     s->copy = init_copy;
+    s->set_loop = 0;
 }

@@ -91,7 +91,7 @@ void ui_init() {
 }
 
 void copy_start() {
-    if (ss.copy.pasting == 1 || ss.clearing == 1) return;
+    if (ss.set_loop == 1 || ss.copy.pasting == 1 || ss.clearing == 1) return;
     if (ss.copy.copying == CP_NO) {
         ss.copy.copying = CP_SELECT;
         leds_set(copy_btn.row, copy_btn.col, red);
@@ -120,10 +120,10 @@ void copy_select(struct input_evt *e) {
 }
 
 void paste_start() {
-    if (ss.copy.copying == CP_SELECT || ss.clearing == 1) return;
+    if (ss.set_loop == 1 || ss.copy.copying == CP_SELECT || ss.clearing == 1) return;
     if (ss.copy.pasting == 0 && ss.copy.copying == CP_YES) {
         ss.copy.pasting = 1;
-        leds_set(paste_btn.row, paste_btn.col, red);
+        leds_set(paste_btn.row, paste_btn.col, green);
     } else {
         ss.copy.pasting = 0;
         leds_set(paste_btn.row, paste_btn.col, off);
@@ -147,17 +147,17 @@ void paste_select(struct input_evt *e) {
 }
 
 void clear_start() {
-    if (ss.copy.copying == CP_SELECT || ss.copy.pasting == 1) return;
+    if (ss.set_loop == 1 || ss.copy.copying == CP_SELECT || ss.copy.pasting == 1) return;
     if (ss.clearing == 0) {
         ss.clearing = 1;
-        leds_set(clear_btn.row, clear_btn.col, red);
+        leds_set(clear_btn.row, clear_btn.col, green);
     } else {
         ss.clearing = 0;
         leds_set(paste_btn.row, paste_btn.col, off);
     }
 }
 
-void clear_select() {
+void clear_select(struct input_evt *e) {
     if (e->col == CHAN_COL || e->col == PRESET_COL || e->col == GROUP_COL) {
         ss.clearing = 0;
         leds_set(clear_btn.row, clear_btn.col, off);
@@ -167,6 +167,19 @@ void clear_select() {
     else if (e->col == PRESET_COL) clear_preset(&ss, e->row);
     else if (e->col == GROUP_COL) clear_group(&ss, e->row);
 }
+
+void set_loop_start() {
+    if (ss.copy.pasting == 1 || ss.copy.copying == CP_SELECT || ss.clearing == 1) return;
+    if (ss.set_loop == 0) {
+        ss.set_loop = 1;
+        leds_set(set_loop_btn.row, set_loop_btn.col, red);
+        // TODO: render selected loop groups+presets
+    } else {
+        ss.set_loop = 0;
+        leds_set(set_loop_btn.row, set_loop_btn.col, off);
+    }
+}
+
 
 #define IS(a) (memcmp(&i, &a, sizeof(pos)) == 0)
 
@@ -192,6 +205,8 @@ void ui_handle_vertical(struct input_evt *e) {
     if (IS(paste_btn)) paste_start();
 
     if (IS(clear_btn)) clear_start();
+
+    if (IS(set_loop_btn)) set_loop_start();
 
     if (e->col == STEPS_COL) {
         toggle_step(&ss, e->row);

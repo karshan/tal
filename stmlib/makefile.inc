@@ -26,7 +26,7 @@
 # Files and directories
 # ------------------------------------------------------------------------------
 
-TOOLCHAIN_PATH ?= /usr/local/
+TOOLCHAIN_PATH ?= /k/gits/tal/gcc-arm-11.2-2022.02-x86_64-arm-none-eabi/
 
 PGM_INTERFACE ?= stlink-v2
 # PGM_INTERFACE ?= ftdi/olimex-arm-jtag-swd
