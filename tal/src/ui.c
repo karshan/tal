@@ -4,6 +4,7 @@
 #include "leds.h"
 #include "seq_state.h"
 #include "ui.h"
+#include "output.h"
 
 #define WritePin(p, v) HAL_GPIO_WritePin(GPIOD, p, v);
 
@@ -18,8 +19,11 @@ pos vertical_btn = { 7, 9 };
 pos _8x8_btn = { 6, 9 };
 pos _1x64_btn = { 3, 9 };
 
+pos tempo_up = { 4, 0 };
+pos tempo_down = { 5, 0 };
+
 // vertical mode btns
-#define GROUP_COL 2
+#define GROUP_COL 1
 #define PRESET_COL 2
 #define STEPS_COL 3
 #define CHAN_COL 4
@@ -38,6 +42,7 @@ uint8_t preset_loop = 0; // TODO: move to state_t
 state_t ss;
 
 uint16_t tick = 0;
+uint16_t bpm = 128;
 
 void render_steps_vertical() {
     for (int i = 0; i < 8; i++)
@@ -249,8 +254,23 @@ void ui_handle_vertical(struct input_evt *e) {
 }
 
 void ui_handle_input(struct input_evt *e) {
+    leds_set(tempo_up.row, tempo_up.col, off);
+    leds_set(tempo_down.row, tempo_down.col, off);
     pos i = { e->row, e->col };
     if (e->val == 0) { // key release
+        if (IS(tempo_up)) {
+            bpm = bpm + 1;
+            if (bpm > 400) bpm = 400;
+            set_tim_config(bpm);
+            leds_set(tempo_up.row, tempo_up.col, red);
+        }
+
+        if (IS(tempo_down)) {
+            bpm = bpm - 1;
+            if (bpm < 40) bpm = 40;
+            set_tim_config(bpm);
+            leds_set(tempo_down.row, tempo_down.col, red);
+	}
         if (IS(vertical_btn)) vertical_mode_init();
         if (IS(_8x8_btn)) _8x8_mode_init();
         if (IS(_1x64_btn)) _1x64_mode_init();

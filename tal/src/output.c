@@ -29,6 +29,17 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim) {
     }
 }
 
+void set_tim_config(uint16_t bpm) {
+    TIM2_handle.Instance = TIM2;
+    TIM2_handle.Init.Period            = 52500/bpm;
+    TIM2_handle.Init.RepetitionCounter = 0;
+    TIM2_handle.Init.Prescaler         = 999;
+    TIM2_handle.Init.ClockDivision     = TIM_CLOCKDIVISION_DIV1;
+    TIM2_handle.Init.CounterMode       = TIM_COUNTERMODE_UP;
+    HAL_TIM_Base_Init(&TIM2_handle);
+}
+
+
 void output_init() {
     __HAL_RCC_GPIOD_CLK_ENABLE();
     // FIXME use pins from ui.c ??? one source of truth
@@ -39,12 +50,7 @@ void output_init() {
     __HAL_RCC_TIM2_CLK_ENABLE();
     __TIM2_CLK_ENABLE();
     TIM2_handle.Instance = TIM2;
-    TIM2_handle.Init.Period            = 50;
-    TIM2_handle.Init.RepetitionCounter = 0;
-    TIM2_handle.Init.Prescaler         = 10000;
-    TIM2_handle.Init.ClockDivision     = TIM_CLOCKDIVISION_DIV1;
-    TIM2_handle.Init.CounterMode       = TIM_COUNTERMODE_UP;
-    HAL_TIM_Base_Init(&TIM2_handle);
+    set_tim_config(128);
     HAL_TIM_Base_Start(&TIM2_handle);
     HAL_NVIC_SetPriority(TIM2_IRQn, 0, 0);
     HAL_NVIC_EnableIRQ(TIM2_IRQn);
